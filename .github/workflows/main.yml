@@ -1,0 +1,33 @@
+name: SecureAudit SAST Scan
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Trigger SecureAudit Scan
+        run: |
+          curl -X POST https://773a393f4b30.ngrok-free.app/api/ci/webhook \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.AUDIT_TOKEN }}" \
+            -d '{
+              "repo": "${{ github.repository }}",
+              "commit": "${{ github.sha }}",
+              "branch": "${{ github.ref_name }}",
+              "config": "auto",
+              "debug": true
+            }'
+      
+      - name: Display Scan Status
+        run: |
+          echo "✅ Security scan triggered for commit ${{ github.sha }}"
+          echo "📊 View results in your SecureAudit dashboard"
